@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+
+{% block title %}Add New Bet - FanDuel Bet Tracker{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">
+                    <i class="fas fa-plus-circle me-2"></i>Add New Bet
+                </h3>
+            </div>
+            <div class="card-body">
+                <form id="betForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="date" class="form-label">Date</label>
+                            <input type="date" class="form-control" id="date" name="date" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="sport" class="form-label">Sport</label>
+                            <select class="form-select" id="sport" name="sport" required>
+                                <option value="">Select Sport</option>
+                                <option value="NFL">NFL</option>
+                                <option value="NBA">NBA</option>
+                                <option value="MLB">MLB</option>
+                                <option value="NHL">NHL</option>
+                                <option value="College Football">College Football</option>
+                                <option value="College Basketball">College Basketball</option>
+                                <option value="Soccer">Soccer</option>
+                                <option value="Tennis">Tennis</option>
+                                <option value="Golf">Golf</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="bet_type" class="form-label">Bet Type</label>
+                            <select class="form-select" id="bet_type" name="bet_type" required>
+                                <option value="">Select Bet Type</option>
+                                <option value="spread">Point Spread</option>
+                                <option value="moneyline">Moneyline</option>
+                                <option value="over/under">Over/Under (Total)</option>
+                                <option value="parlay">Parlay</option>
+                                <option value="prop">Prop Bet</option>
+                                <option value="futures">Futures</option>
+                                <option value="live">Live Bet</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="odds" class="form-label">Odds</label>
+                            <input type="text" class="form-control" id="odds" name="odds" placeholder="e.g., -110, +150" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="game_description" class="form-label">Game/Match</label>
+                        <input type="text" class="form-control" id="game_description" name="game_description" 
+                               placeholder="e.g., Chiefs vs Bills" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="bet_description" class="form-label">Bet Description</label>
+                        <input type="text" class="form-control" id="bet_description" name="bet_description" 
+                               placeholder="e.g., Chiefs -3.5, Over 47.5 points" required>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="stake" class="form-label">Stake ($)</label>
+                            <input type="number" class="form-control" id="stake" name="stake" step="0.01" min="0" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="potential_payout" class="form-label">Potential Payout ($)</label>
+                            <input type="number" class="form-control" id="potential_payout" name="potential_payout" step="0.01" min="0" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="pending">Pending</option>
+                                <option value="won">Won</option>
+                                <option value="lost">Lost</option>
+                                <option value="pushed">Pushed</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3" id="actual_payout_div" style="display: none;">
+                            <label for="actual_payout" class="form-label">Actual Payout ($)</label>
+                            <input type="number" class="form-control" id="actual_payout" name="actual_payout" step="0.01" min="0">
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary me-md-2">
+                            <i class="fas fa-arrow-left me-1"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>Add Bet
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="successToast" class="toast" role="alert">
+        <div class="toast-header bg-success text-white">
+            <i class="fas fa-check-circle me-2"></i>
+            <strong class="me-auto">Success</strong>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body">
+            Bet added successfully!
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set today's date as default
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('date').value = today;
+    
+    // Show/hide actual payout field based on status
+    const statusSelect = document.getElementById('status');
+    const actualPayoutDiv = document.getElementById('actual_payout_div');
+    const actualPayoutInput = document.getElementById('actual_payout');
+    
+    statusSelect.addEventListener('change', function() {
+        if (this.value === 'won') {
+            actualPayoutDiv.style.display = 'block';
+            actualPayoutInput.required = true;
+            // Set default to potential payout
+            const potentialPayout = document.getElementById('potential_payout').value;
+            if (potentialPayout) {
+                actualPayoutInput.value = potentialPayout;
+            }
+        } else {
+            actualPayoutDiv.style.display = 'none';
+            actualPayoutInput.required = false;
+            actualPayoutInput.value = '';
+        }
+    });
+    
+    // Auto-calculate potential payout based on odds and stake
+    const stakeInput = document.getElementById('stake');
+    const oddsInput = document.getElementById('odds');
+    const potentialPayoutInput = document.getElementById('potential_payout');
+    
+    function calculatePayout() {
+        const stake = parseFloat(stakeInput.value);
+        const odds = oddsInput.value.trim();
+        
+        if (stake && odds) {
+            let payout = 0;
+            
+            if (odds.startsWith('+')) {
+                // Positive odds (e.g., +150)
+                const oddsNum = parseInt(odds.substring(1));
+                payout = stake + (stake * oddsNum / 100);
+            } else if (odds.startsWith('-')) {
+                // Negative odds (e.g., -110)
+                const oddsNum = parseInt(odds.substring(1));
+                payout = stake + (stake * 100 / oddsNum);
+            }
+            
+            if (payout > 0) {
+                potentialPayoutInput.value = payout.toFixed(2);
+            }
+        }
+    }
+    
+    stakeInput.addEventListener('input', calculatePayout);
+    oddsInput.addEventListener('input', calculatePayout);
+    
+    // Form submission
+    document.getElementById('betForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const data = Object.fromEntries(formData);
+        
+        fetch('/add_bet', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success toast
+                const toast = new bootstrap.Toast(document.getElementById('successToast'));
+                toast.show();
+                
+                // Reset form
+                this.reset();
+                document.getElementById('date').value = today;
+                actualPayoutDiv.style.display = 'none';
+                actualPayoutInput.required = false;
+                
+                // Redirect to dashboard after a delay
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 2000);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error adding bet. Please try again.');
+        });
+    });
+});
+</script>
+{% endblock %}

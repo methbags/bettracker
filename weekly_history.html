@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Weekly History - FanDuel Bet Tracker{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="mb-0">
+            <i class="fas fa-history text-primary me-2"></i>
+            Weekly History
+        </h2>
+        <p class="text-muted">Your betting performance week by week</p>
+    </div>
+</div>
+
+{% if weekly_history %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Week</th>
+                                <th>Total Bets</th>
+                                <th>Wins</th>
+                                <th>Losses</th>
+                                <th>Win Rate</th>
+                                <th>Total Staked</th>
+                                <th>Total Payout</th>
+                                <th>Profit/Loss</th>
+                                <th>ROI</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for week in weekly_history %}
+                            <tr>
+                                <td class="fw-bold">{{ week.year }} - Week {{ week.week_number }}</td>
+                                <td>{{ week.total_bets }}</td>
+                                <td class="text-success">{{ week.wins }}</td>
+                                <td class="text-danger">{{ week.losses }}</td>
+                                <td>
+                                    <span class="badge {% if week.win_rate >= 60 %}bg-success{% elif week.win_rate >= 50 %}bg-warning{% else %}bg-danger{% endif %}">
+                                        {{ week.win_rate }}%
+                                    </span>
+                                </td>
+                                <td>${{ week.total_staked }}</td>
+                                <td>${{ week.total_payout }}</td>
+                                <td class="fw-bold {% if week.profit_loss >= 0 %}profit-positive{% else %}profit-negative{% endif %}">
+                                    ${{ week.profit_loss }}
+                                </td>
+                                <td class="fw-bold {% if week.roi >= 0 %}profit-positive{% else %}profit-negative{% endif %}">
+                                    {{ week.roi }}%
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mt-4">
+    <div class="col-md-3 mb-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <i class="fas fa-calendar-week fa-2x mb-2"></i>
+                <h4>{{ weekly_history|length }}</h4>
+                <p class="mb-0">Weeks Tracked</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <i class="fas fa-trophy fa-2x mb-2"></i>
+                <h4>{{ weekly_history|selectattr('profit_loss', 'gt', 0)|list|length }}</h4>
+                <p class="mb-0">Profitable Weeks</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <i class="fas fa-chart-line fa-2x mb-2"></i>
+                <h4>{{ "%.1f"|format((weekly_history|selectattr('profit_loss', 'gt', 0)|list|length / weekly_history|length * 100) if weekly_history|length > 0 else 0) }}%</h4>
+                <p class="mb-0">Win Rate (Weeks)</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body text-center">
+                <i class="fas fa-dollar-sign fa-2x mb-2"></i>
+                <h4 class="{% if (weekly_history|sum(attribute='profit_loss')) >= 0 %}text-white{% else %}text-white{% endif %}">
+                    ${{ "%.2f"|format(weekly_history|sum(attribute='profit_loss')) }}
+                </h4>
+                <p class="mb-0">Total P&L</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-calendar-times fa-4x text-muted mb-4"></i>
+                <h4 class="text-muted">No Weekly History Available</h4>
+                <p class="text-muted mb-4">Start adding bets to see your weekly performance history</p>
+                <a href="{{ url_for('add_bet') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i>Add Your First Bet
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

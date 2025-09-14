@@ -1,0 +1,315 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - FanDuel Bet Tracker{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="mb-0">
+            <i class="fas fa-tachometer-alt text-primary me-2"></i>
+            Dashboard - Week {{ current_week }}
+        </h2>
+        <p class="text-muted">Your betting performance overview</p>
+    </div>
+</div>
+
+<!-- Weekly Stats -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h4 class="mb-3">This Week's Performance</h4>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card">
+            <div class="card-body text-center">
+                <i class="fas fa-chart-bar fa-2x mb-2"></i>
+                <h3 class="mb-1">{{ weekly_stats.total_bets }}</h3>
+                <p class="mb-0">Total Bets</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card">
+            <div class="card-body text-center">
+                <i class="fas fa-percentage fa-2x mb-2"></i>
+                <h3 class="mb-1">{{ weekly_stats.win_rate }}%</h3>
+                <p class="mb-0">Win Rate</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card">
+            <div class="card-body text-center">
+                <i class="fas fa-dollar-sign fa-2x mb-2"></i>
+                <h3 class="mb-1 {% if weekly_stats.profit_loss >= 0 %}profit-positive{% else %}profit-negative{% endif %}">
+                    ${{ weekly_stats.profit_loss }}
+                </h3>
+                <p class="mb-0">Profit/Loss</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card">
+            <div class="card-body text-center">
+                <i class="fas fa-chart-line fa-2x mb-2"></i>
+                <h3 class="mb-1 {% if weekly_stats.roi >= 0 %}profit-positive{% else %}profit-negative{% endif %}">
+                    {{ weekly_stats.roi }}%
+                </h3>
+                <p class="mb-0">ROI</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Overall Stats -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h4 class="mb-3">Overall Performance</h4>
+    </div>
+    <div class="col-md-2 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h4 class="text-primary">{{ overall_stats.total_bets }}</h4>
+                <p class="mb-0 small">Total Bets</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h4 class="text-success">{{ overall_stats.wins }}</h4>
+                <p class="mb-0 small">Wins</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h4 class="text-danger">{{ overall_stats.losses }}</h4>
+                <p class="mb-0 small">Losses</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h4 class="text-warning">{{ overall_stats.pending }}</h4>
+                <p class="mb-0 small">Pending</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h4 class="{% if overall_stats.profit_loss >= 0 %}profit-positive{% else %}profit-negative{% endif %}">
+                    ${{ overall_stats.profit_loss }}
+                </h4>
+                <p class="mb-0 small">Total P&L</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h4 class="{% if overall_stats.roi >= 0 %}profit-positive{% else %}profit-negative{% endif %}">
+                    {{ overall_stats.roi }}%
+                </h4>
+                <p class="mb-0 small">Overall ROI</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bet Type Performance -->
+{% if bet_type_stats %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h4 class="mb-3">Performance by Bet Type</h4>
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Bet Type</th>
+                                <th>Total Bets</th>
+                                <th>Win Rate</th>
+                                <th>Total Staked</th>
+                                <th>Profit/Loss</th>
+                                <th>ROI</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for bet_type, stats in bet_type_stats.items() %}
+                            <tr>
+                                <td class="fw-bold text-capitalize">{{ bet_type }}</td>
+                                <td>{{ stats.total_bets }}</td>
+                                <td>{{ stats.win_rate }}%</td>
+                                <td>${{ stats.total_staked }}</td>
+                                <td class="{% if stats.profit_loss >= 0 %}profit-positive{% else %}profit-negative{% endif %}">
+                                    ${{ stats.profit_loss }}
+                                </td>
+                                <td class="{% if stats.roi >= 0 %}profit-positive{% else %}profit-negative{% endif %}">
+                                    {{ stats.roi }}%
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Recent Bets -->
+<div class="row">
+    <div class="col-12">
+        <h4 class="mb-3">Recent Bets</h4>
+        <div class="card">
+            <div class="card-body">
+                {% if recent_bets %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Game</th>
+                                <th>Bet</th>
+                                <th>Type</th>
+                                <th>Odds</th>
+                                <th>Stake</th>
+                                <th>Status</th>
+                                <th>P&L</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for bet in recent_bets %}
+                            <tr>
+                                <td>{{ bet.date.strftime('%m/%d') }}</td>
+                                <td>{{ bet.game_description }}</td>
+                                <td>{{ bet.bet_description }}</td>
+                                <td class="text-capitalize">{{ bet.bet_type }}</td>
+                                <td>{{ bet.odds }}</td>
+                                <td>${{ bet.stake }}</td>
+                                <td>
+                                    <span class="status-badge status-{{ bet.status }}">
+                                        {{ bet.status.title() }}
+                                    </span>
+                                </td>
+                                <td class="{% if bet.profit_loss >= 0 %}profit-positive{% else %}profit-negative{% endif %}">
+                                    ${{ bet.profit_loss }}
+                                </td>
+                                <td>
+                                    {% if bet.status == 'pending' %}
+                                    <button class="btn btn-sm btn-outline-primary" onclick="updateBet({{ bet.id }})">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No bets recorded yet</h5>
+                    <p class="text-muted">Start tracking your bets to see your performance here</p>
+                    <a href="{{ url_for('add_bet') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>Add Your First Bet
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Update Bet Modal -->
+<div class="modal fade" id="updateBetModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Update Bet Status</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="updateBetForm">
+                    <input type="hidden" id="updateBetId">
+                    <div class="mb-3">
+                        <label for="updateStatus" class="form-label">Status</label>
+                        <select class="form-select" id="updateStatus" required>
+                            <option value="won">Won</option>
+                            <option value="lost">Lost</option>
+                            <option value="pushed">Pushed</option>
+                        </select>
+                    </div>
+                    <div class="mb-3" id="updatePayoutDiv" style="display: none;">
+                        <label for="updatePayout" class="form-label">Actual Payout ($)</label>
+                        <input type="number" class="form-control" id="updatePayout" step="0.01" min="0">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="submitBetUpdate()">Update Bet</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function updateBet(betId) {
+    document.getElementById('updateBetId').value = betId;
+    const modal = new bootstrap.Modal(document.getElementById('updateBetModal'));
+    modal.show();
+}
+
+document.getElementById('updateStatus').addEventListener('change', function() {
+    const payoutDiv = document.getElementById('updatePayoutDiv');
+    if (this.value === 'won') {
+        payoutDiv.style.display = 'block';
+        document.getElementById('updatePayout').required = true;
+    } else {
+        payoutDiv.style.display = 'none';
+        document.getElementById('updatePayout').required = false;
+    }
+});
+
+function submitBetUpdate() {
+    const betId = document.getElementById('updateBetId').value;
+    const status = document.getElementById('updateStatus').value;
+    const payout = document.getElementById('updatePayout').value;
+    
+    const data = {
+        status: status,
+        actual_payout: payout
+    };
+    
+    fetch(`/update_bet/${betId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error updating bet');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating bet');
+    });
+}
+</script>
+{% endblock %}

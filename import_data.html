@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}Import Data - FanDuel Bet Tracker{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="mb-0">
+            <i class="fas fa-upload text-primary me-2"></i>
+            Import Betting Data
+        </h2>
+        <p class="text-muted">Import your betting history from various sources</p>
+    </div>
+</div>
+
+<!-- Flash Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<div class="row">
+    <!-- CSV Import -->
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-file-csv me-2"></i>CSV File Import
+                </h4>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Upload a CSV file with your betting data. Perfect for bulk imports or data from other tracking apps.</p>
+                
+                <form method="POST" enctype="multipart/form-data" id="csvForm">
+                    <input type="hidden" name="import_type" value="csv">
+                    
+                    <div class="mb-3">
+                        <label for="csv_file" class="form-label">Select CSV File</label>
+                        <input type="file" class="form-control" id="csv_file" name="csv_file" accept=".csv" required>
+                        <div class="form-text">Maximum file size: 16MB</div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-upload me-1"></i>Import CSV
+                        </button>
+                        <a href="{{ url_for('download_template') }}" class="btn btn-outline-success">
+                            <i class="fas fa-download me-1"></i>Download Template
+                        </a>
+                    </div>
+                </form>
+                
+                <hr>
+                <h6>Required CSV Columns:</h6>
+                <ul class="small">
+                    <li><strong>date</strong> - Bet date (YYYY-MM-DD)</li>
+                    <li><strong>bet_type</strong> - spread, moneyline, over/under, parlay, prop</li>
+                    <li><strong>sport</strong> - NFL, NBA, MLB, etc.</li>
+                    <li><strong>game_description</strong> - Teams playing</li>
+                    <li><strong>bet_description</strong> - Specific bet details</li>
+                    <li><strong>odds</strong> - Betting odds (+150, -110, etc.)</li>
+                    <li><strong>stake</strong> - Amount wagered</li>
+                    <li><strong>potential_payout</strong> - Potential winnings</li>
+                </ul>
+                
+                <h6>Optional Columns:</h6>
+                <ul class="small">
+                    <li><strong>status</strong> - won, lost, pushed, pending</li>
+                    <li><strong>actual_payout</strong> - Actual payout received</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Email Import -->
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-info text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-envelope me-2"></i>Email Import
+                </h4>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Parse betting confirmation emails from FanDuel, DraftKings, and other sportsbooks.</p>
+                
+                <form method="POST" id="emailForm">
+                    <input type="hidden" name="import_type" value="email">
+                    
+                    <div class="mb-3">
+                        <label for="email_subject" class="form-label">Email Subject (Optional)</label>
+                        <input type="text" class="form-control" id="email_subject" name="email_subject" 
+                               placeholder="FanDuel Bet Confirmation">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email_content" class="form-label">Email Content</label>
+                        <textarea class="form-control" id="email_content" name="email_content" rows="8" 
+                                  placeholder="Paste your bet confirmation email content here..." required></textarea>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-info">
+                            <i class="fas fa-magic me-1"></i>Parse Email
+                        </button>
+                    </div>
+                </form>
+                
+                <hr>
+                <h6>Supported Sportsbooks:</h6>
+                <ul class="small">
+                    <li><i class="fas fa-check text-success me-1"></i>FanDuel</li>
+                    <li><i class="fas fa-check text-success me-1"></i>DraftKings</li>
+                    <li><i class="fas fa-check text-success me-1"></i>Caesars</li>
+                    <li><i class="fas fa-clock text-warning me-1"></i>More coming soon...</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- How Apps Like Juice Reel Work -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>How Apps Like Juice Reel Connect to Sportsbooks
+                </h4>
+            </div>
+            <div class="card-body">
+                <p>You asked how apps like Juice Reel connect to FanDuel without official APIs. Here are the methods they use:</p>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-robot text-primary me-2"></i>Web Scraping</h5>
+                        <p class="small">Apps use automated tools (Selenium, Puppeteer) to log into your account and scrape betting data. You provide credentials, and the app navigates your account to extract bet history.</p>
+                        
+                        <h5><i class="fas fa-envelope text-info me-2"></i>Email Parsing</h5>
+                        <p class="small">Parse bet confirmation emails from sportsbooks. You forward confirmations or grant email access for automatic parsing.</p>
+                        
+                        <h5><i class="fas fa-mobile-alt text-success me-2"></i>Mobile Integration</h5>
+                        <p class="small">Mobile apps monitor your betting activity in real-time, capturing data as you place bets.</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-sms text-warning me-2"></i>SMS Parsing</h5>
+                        <p class="small">Similar to email parsing but for SMS notifications from sportsbooks.</p>
+                        
+                        <h5><i class="fas fa-camera text-secondary me-2"></i>Screenshot OCR</h5>
+                        <p class="small">Users upload screenshots of betting slips, and OCR (Optical Character Recognition) extracts bet details.</p>
+                        
+                        <h5><i class="fas fa-puzzle-piece text-danger me-2"></i>Browser Extensions</h5>
+                        <p class="small">Browser extensions run in the background while you bet, automatically capturing data.</p>
+                    </div>
+                </div>
+                
+                <div class="alert alert-warning mt-3">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Legal Note:</strong> While these methods work, they often violate sportsbook Terms of Service. 
+                    Manual entry and email parsing (like this app offers) are safer alternatives that give you full control over your data.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Future Enhancements -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-rocket text-primary me-2"></i>Future Enhancements
+                </h5>
+                <p>We're working on adding more automated import methods:</p>
+                <ul>
+                    <li><strong>Screenshot OCR:</strong> Upload betting slip screenshots for automatic parsing</li>
+                    <li><strong>Browser Extension:</strong> Capture bets automatically while browsing sportsbooks</li>
+                    <li><strong>API Integrations:</strong> Connect to sportsbooks that offer official APIs</li>
+                    <li><strong>Email Forwarding:</strong> Dedicated email address for automatic bet confirmation parsing</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // CSV form validation
+    document.getElementById('csvForm').addEventListener('submit', function(e) {
+        const fileInput = document.getElementById('csv_file');
+        const file = fileInput.files[0];
+        
+        if (file) {
+            if (file.size > 16 * 1024 * 1024) {
+                e.preventDefault();
+                alert('File size must be less than 16MB');
+                return;
+            }
+            
+            if (!file.name.toLowerCase().endsWith('.csv')) {
+                e.preventDefault();
+                alert('Please select a CSV file');
+                return;
+            }
+        }
+    });
+    
+    // Email form validation
+    document.getElementById('emailForm').addEventListener('submit', function(e) {
+        const content = document.getElementById('email_content').value.trim();
+        
+        if (content.length < 50) {
+            e.preventDefault();
+            alert('Please provide more detailed email content');
+            return;
+        }
+    });
+});
+</script>
+{% endblock %}
